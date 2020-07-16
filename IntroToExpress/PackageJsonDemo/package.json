@@ -1,0 +1,11 @@
+{
+  "name": "packagejsondemo",
+  "version": "1.0.0",
+  "description": "webdevelopmenybootcamp",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Darnell Sylvain",
+  "license": "ISC"
+}
