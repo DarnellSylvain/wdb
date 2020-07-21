@@ -1,11 +1,21 @@
+
 const express = require('express'),
     app = express(),
     bodyParser = require('body-parser'),
     mongoose = require('mongoose'),
+    passport = require('passport'),
+    LocalStrategy = require('passport-local'),
     Superhero = require("./models/superhero"),
-    Comment = require("./models/comment")
-
+    Comment = require("./models/comment"),
+    User = require("./models/user")
     seedDB = require("./seeds");
+
+
+// Requiring Routes
+const   commentRoutes = require("./routes/comments"),
+        superheroRoutes = require("./routes/superheroes"),
+        indexRoutes = require("./routes/index");
+        
 
 
 app.set("view engine", "ejs");
@@ -15,79 +25,33 @@ app.use(express.static(__dirname + "/public"))
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.connect("mongodb://localhost/super_camp", {useNewUrlParser:true})
-seedDB()
+// seedDB()
 
-// SCHEMA SETUP (MOVED TO SEPERATE FILE)
+// PASSPORT CONFIG
+app.use(require("express-session")({
+    secret: "Thanos is the best MCU villain",
+    resave: false, 
+    saveUninitialized: false
+}))
 
-app.get("/", (req, res) => {
-    res.render("landing")
-})
- 
+app.use(passport.initialize());
+app.use(passport.session())
+passport.use(new LocalStrategy(User.authenticate()))
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
 
-app.get("/superheroes", (req, res) => {
-   // Get all superheroes from DB
-    Superhero.find({}, (err, allSuperheroes) => {
-        err ? console.log(err) : res.render("superheroes/index", {superheroes: allSuperheroes})
-    })
+const isLoggedIn = (req, res, next) => {
+    req.isAuthenticated() ? next() : res.redirect("/login")
+}
 
-})
-
-app.post("/superheroes", (req, res) => {
-    const {name, image, description} = req.body
-    var newSuperHero = {
-        name: name,
-        image: image,
-        description: description
-    }
-    Superhero.create(newSuperHero, (err, superhero) => {
-        err ? console.log(err) : res.redirect("/superheroes")
-    })
-    
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    next();
 })
 
-app.get("/superheroes/new", (req, res) => {
-    res.render("superheroes/new")
-})
-
-// SHOW - Shows more info about one superhero
-app.get("/superheroes/:id", (req, res) => {
-    // find suphero with the provided ID
-    Superhero.findById(req.params.id).populate("comments").exec((err, foundSuperhero) => {
-        err ? console.log(err) : 
-        res.render("superheroes/show", {superhero: foundSuperhero})      
-    })
-})
-
-// ====================
-// Comments Routes
-// =================
-
-// NEW superheroes/:id/comments/new GET
-app.get("/superheroes/:id/comments/new", (req, res) => {
-    Superhero.findById(req.params.id, (err, superhero) => {
-        err ? console.log(err) : res.render("comments/new", {superhero: superhero})
-    })
-})
-
-
-app.post("/superheroes/:id/comments", (req, res) => {
-    //lookup superhero using ID
-    Superhero.findById(req.params.id, (err, superhero) => {
-        err ? (console.log(err), redirect("/campground")) : (
-            Comment.create(req.body.comment, (err, comment) => {
-                err ? console.log(err) : (
-                    superhero.comments.push(comment),
-                    superhero.save(),
-                    res.redirect(  `/superheroes/${superhero.id}`)
-                )
-            })
-        )
-    })
-    //create new comment
-    // conect new comment to superhero
-    // redirect superhero show page
-})
-
+app.use(indexRoutes);
+app.use("/superheroes", superheroRoutes);
+app.use(commentRoutes);
 
 
 app.listen(3000, () => console.log("Server has started on port 3000"))
