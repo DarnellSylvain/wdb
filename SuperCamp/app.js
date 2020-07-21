@@ -25,7 +25,8 @@ app.use(express.static(__dirname + "/public"))
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.connect("mongodb://localhost/super_camp", {useNewUrlParser:true})
-// seedDB()
+
+seedDB(); // Seed the Database
 
 // PASSPORT CONFIG
 app.use(require("express-session")({

@@ -10,21 +10,22 @@ var data = [
 
 const seedDB = () => {
     // Remove all camgrounds
-    Superhero.deleteMany({}, err => {err ? console.log(err) : console.log("Removed all superheros!")
-    // Add a few camgrounds
-    data.map(seed => {
-        Superhero.create(seed, (err, superhero) => {
-            err ? console.log(err) : 
-            console.log("Campground added"),
-            // create a comment
-            Comment.create({text: "This character is great, but he is an alcoholic", 
-                            author: "BruzR 4D"}, (err, comment) => {
-                            superhero.comments.push(comment);
-                            superhero.save()
-                            console.log("Create new comment")
-                            })
-        })
-    })
+    Superhero.deleteMany({}, err => {
+    //     err ? console.log(err) : console.log("Removed all superheros!")
+    // // Add a few camgrounds
+    // data.map(seed => {
+    //     Superhero.create(seed, (err, superhero) => {
+    //         err ? console.log(err) : 
+    //         console.log("Campground added"),
+    //         // create a comment
+    //         Comment.create({text: "This character is great, but he is an alcoholic", 
+    //                         author: "BruzR 4D"}, (err, comment) => {
+    //                         superhero.comments.push(comment);
+    //                         superhero.save()
+    //                         console.log("Create new comment")
+    //                         })
+    //     })
+    // })
 })
     
 

@@ -2,6 +2,10 @@ const express = require("express")
 const router = express.Router()
 const Superhero = require("../models/superhero")
 
+const isLoggedIn = (req, res, next) => {
+    req.isAuthenticated() ? next() : res.redirect("/login")
+}
+
 router.get("/", (req, res) => {
    // Get all superheroes from DB
     Superhero.find({}, (err, allSuperheroes) => {
@@ -10,7 +14,7 @@ router.get("/", (req, res) => {
 
 })
 // Create new superhero
-router.post("/", (req, res) => {
+router.post("/", isLoggedIn, (req, res) => {
     const {name, image, description} = req.body
     var newSuperHero = {
         name: name,
@@ -23,7 +27,7 @@ router.post("/", (req, res) => {
     
 })
 
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
     res.render("superheroes/new")
 })
 
@@ -35,5 +39,6 @@ router.get("/:id", (req, res) => {
         res.render("superheroes/show", {superhero: foundSuperhero})      
     })
 })
+
 
 module.exports = router
