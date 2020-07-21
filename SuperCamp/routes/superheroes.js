@@ -16,13 +16,19 @@ router.get("/", (req, res) => {
 // Create new superhero
 router.post("/", isLoggedIn, (req, res) => {
     const {name, image, description} = req.body
+    var author = {
+        id: req.user._id,
+        username: req.user.username
+    }
     var newSuperHero = {
         name: name,
         image: image,
-        description: description
+        description: description,
+        author: author
     }
-    Superhero.create(newSuperHero, (err, superhero) => {
-        err ? console.log(err) : res.redirect("/superheroes")
+    
+    Superhero.create(newSuperHero, (err, newlyCreated) => {
+        err ? console.log(err) : console.log(newlyCreated), res.redirect("/superheroes")
     })
     
 })
