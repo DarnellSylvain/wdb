@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const Comment = require('./comment');
 
 var superheroSchema = new mongoose.Schema({
     name: String, 
@@ -19,4 +20,11 @@ var superheroSchema = new mongoose.Schema({
     ]
 })
 
+superheroSchema.pre('remove', async function() {
+	await Comment.remove({
+		_id: {
+			$in: this.comments
+		}
+	});
+});
 module.exports = mongoose.model("Superhero", superheroSchema)

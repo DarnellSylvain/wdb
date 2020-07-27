@@ -19,6 +19,12 @@
                     <h4><a><%=superhero.name%></h4></a>
                     <p><%= superhero.description %></p>
                     <p><em>Submitted By </em><%= superhero.author.username %></p>
+                    <% if(currentUser && superhero.author.id.equals(currentUser._id)){ %>
+                        <a class="btn btn-xs btn btn-warning" href="/superheroes/<%=superhero._id%>/edit">Edit</a>
+                        <form class="delete-form" action="/superheroes/<%=superhero._id%>?_method=DELETE" method="POST">
+                            <button class="btn btn-xs btn btn-danger">Delete</button>
+                        </form>
+                    <%}%>
                 </div>
             </div>
             <div class="well">
@@ -34,6 +40,12 @@
                             <p>
                                 <%= comment.text %>
                             </p>
+                            <% if(currentUser && comment.author.id.equals(currentUser._id)){ %>
+                            <a class="btn btn-xs btn-warning" href="/superheroes/<%= superhero._id%>/comments/<%=comment._id%>/edit">Edit</a>
+                                <form class="delete-form" action="/superheroes/<%= superhero._id%>/comments/<%=comment._id%>?_method=DELETE" method="POST">
+                                    <input type="submit" class="btn btn-xs btn-danger" value="Delete"/>
+                                </form>
+                            <%}%>
                         </div>
                     </div>
                    

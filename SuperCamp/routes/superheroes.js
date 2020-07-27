@@ -1,11 +1,26 @@
 const express = require("express")
 const router = express.Router()
 const Superhero = require("../models/superhero")
+const { route } = require("./comments")
+const superhero = require("../models/superhero")
 
+// middleware
 const isLoggedIn = (req, res, next) => {
     req.isAuthenticated() ? next() : res.redirect("/login")
 }
 
+const checkSuperheroOwnership = (req, res, next) => {
+    req.isAuthenticated() ? 
+            Superhero.findById(req.params.id, ((err, foundSuperhero) => {
+                err ? res.redirect("back") 
+                : (foundSuperhero.author.id.equals(req.user._id) ? next() 
+                    : res.redirect("back"))     
+            })) 
+        : res.redirect("back")
+}
+//==================================================================================
+
+// Routes
 router.get("/", (req, res) => {
    // Get all superheroes from DB
     Superhero.find({}, (err, allSuperheroes) => {
@@ -46,5 +61,38 @@ router.get("/:id", (req, res) => {
     })
 })
 
+// edit superhero route
+router.get("/:id/edit", checkSuperheroOwnership, (req, res) => {
+    // is user logged in
+            Superhero.findById(req.params.id, ((err, foundSuperhero) => { 
+                res.render("superheroes/edit", {superhero: foundSuperhero})
+            }))
+})
+
+// update superhero route
+router.put("/:id", checkSuperheroOwnership, (req, res) => {
+    // find and update correct superhero
+    const {name, image, description} = req.body
+    Superhero.findByIdAndUpdate(req.params.id, {name, image, description}, (err, updatedSuperhero) => {
+        err ? res.redirect("/superheroes") : res.redirect(`/superheroes/${req.params.id}`)
+    })
+    // redirect
+})
+router.delete("/:id", checkSuperheroOwnership, async(req, res) => {
+    try {
+        let foundSuperhero = await Superhero.findById(req.params.id);
+        await foundSuperhero.deleteOne();
+        res.redirect("/superheroes");
+    } catch (error) {
+        console.log(error.message);
+        res.redirect("/superheroes");
+    }
+  });
+// Destroy Route
+// router.delete("/:id", (req, res) => {
+//     Superhero.findByIdAndRemove(req.params.id, err => {
+//         err ? res.redirect("/superheroes") : res.redirect("/superheroes")
+//     })
+// })
 
 module.exports = router
