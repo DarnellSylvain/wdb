@@ -1,5 +1,6 @@
 const express = require('express'),
     app = express(),
+    flash = require("connect-flash"),
     bodyParser = require('body-parser'),
     mongoose = require('mongoose'),
     passport = require('passport'),
@@ -35,18 +36,17 @@ app.use(require("express-session")({
     saveUninitialized: false
 }))
 
+app.use(flash())
 app.use(passport.initialize());
 app.use(passport.session())
 passport.use(new LocalStrategy(User.authenticate()))
 passport.serializeUser(User.serializeUser())
 passport.deserializeUser(User.deserializeUser())
 
-const isLoggedIn = (req, res, next) => {
-    req.isAuthenticated() ? next() : res.redirect("/login")
-}
-
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error")
+    res.locals.success = req.flash("success")
     next();
 })
 

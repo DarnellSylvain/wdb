@@ -4,6 +4,7 @@ const Comment = require('./comment');
 var superheroSchema = new mongoose.Schema({
     name: String, 
     image: String,
+    affiliation : String,
     description: String,
     author: {
         id: {

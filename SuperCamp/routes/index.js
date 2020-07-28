@@ -3,9 +3,6 @@ const router = express.Router();
 const passport = require("passport");
 const User = require("../models/user")
 
-const isLoggedIn = (req, res, next) => {
-    req.isAuthenticated() ? next() : res.redirect("/login")
-}
 
 router.get("/", (req, res) => {
     res.render("landing")
@@ -15,13 +12,13 @@ router.get("/register", (req, res) => {
     res.render("register")
 })
 
-// handle sign in logic
+// handle sign up logic
 router.post("/register", (req, res) => {
     const {username, password} = req.body
     User.register(new User({username: username}), password, (err, user) => {
-        err ? 
-        (console.log(err), res.render("register")) :
+        err ? (req.flash("error", err.message), res.redirect("/register")) :
         passport.authenticate("local")(req, res, () => {
+            req.flash("success", `Welcome to YelpCamp ${user.username}`)
             res.redirect("/superheroes")
         })
     })
@@ -41,6 +38,7 @@ router.post("/login", passport.authenticate("local",
 // Logout Route
 router.get("/logout", (req, res) => {
     req.logout();
+    req.flash("success", "Successfully, Logged you out")
     res.redirect("/superheroes")
 })
 

@@ -1,23 +1,9 @@
 const express = require("express")
 const router = express.Router()
 const Superhero = require("../models/superhero")
-const { route } = require("./comments")
-const superhero = require("../models/superhero")
+const middleware = require("../middleware")
 
-// middleware
-const isLoggedIn = (req, res, next) => {
-    req.isAuthenticated() ? next() : res.redirect("/login")
-}
 
-const checkSuperheroOwnership = (req, res, next) => {
-    req.isAuthenticated() ? 
-            Superhero.findById(req.params.id, ((err, foundSuperhero) => {
-                err ? res.redirect("back") 
-                : (foundSuperhero.author.id.equals(req.user._id) ? next() 
-                    : res.redirect("back"))     
-            })) 
-        : res.redirect("back")
-}
 //==================================================================================
 
 // Routes
@@ -29,8 +15,8 @@ router.get("/", (req, res) => {
 
 })
 // Create new superhero
-router.post("/", isLoggedIn, (req, res) => {
-    const {name, image, description} = req.body
+router.post("/", middleware.isLoggedIn, (req, res) => {
+    const {name, image, affiliation, description} = req.body
     var author = {
         id: req.user._id,
         username: req.user.username
@@ -38,17 +24,18 @@ router.post("/", isLoggedIn, (req, res) => {
     var newSuperHero = {
         name: name,
         image: image,
+        affiliation, affiliation,
         description: description,
         author: author
     }
     
     Superhero.create(newSuperHero, (err, newlyCreated) => {
-        err ? console.log(err) : console.log(newlyCreated), res.redirect("/superheroes")
+        err ? console.log(err) : res.redirect("/superheroes")
     })
     
 })
 
-router.get("/new", isLoggedIn, (req, res) => {
+router.get("/new", middleware.isLoggedIn, (req, res) => {
     res.render("superheroes/new")
 })
 
@@ -57,12 +44,12 @@ router.get("/:id", (req, res) => {
     // find suphero with the provided ID
     Superhero.findById(req.params.id).populate("comments").exec((err, foundSuperhero) => {
         err ? console.log(err) : 
-        res.render("superheroes/show", {superhero: foundSuperhero})      
+        (res.render("superheroes/show", {superhero: foundSuperhero}))      
     })
 })
 
 // edit superhero route
-router.get("/:id/edit", checkSuperheroOwnership, (req, res) => {
+router.get("/:id/edit", middleware.checkSuperheroOwnership, (req, res) => {
     // is user logged in
             Superhero.findById(req.params.id, ((err, foundSuperhero) => { 
                 res.render("superheroes/edit", {superhero: foundSuperhero})
@@ -70,18 +57,18 @@ router.get("/:id/edit", checkSuperheroOwnership, (req, res) => {
 })
 
 // update superhero route
-router.put("/:id", checkSuperheroOwnership, (req, res) => {
+router.put("/:id", middleware.checkSuperheroOwnership, (req, res) => {
     // find and update correct superhero
-    const {name, image, description} = req.body
-    Superhero.findByIdAndUpdate(req.params.id, {name, image, description}, (err, updatedSuperhero) => {
+    Superhero.findByIdAndUpdate(req.params.id, req.body, (err, updatedSuperhero) => {
         err ? res.redirect("/superheroes") : res.redirect(`/superheroes/${req.params.id}`)
     })
     // redirect
 })
-router.delete("/:id", checkSuperheroOwnership, async(req, res) => {
+router.delete("/:id", middleware.checkSuperheroOwnership, async(req, res) => {
     try {
         let foundSuperhero = await Superhero.findById(req.params.id);
         await foundSuperhero.deleteOne();
+        req.flash("success", "Successfully deleted post")
         res.redirect("/superheroes");
     } catch (error) {
         console.log(error.message);
